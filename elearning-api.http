@@ -1,0 +1,38 @@
+### E-Learning API Test Script
+
+@host = http://localhost:8080
+@email = test@example.com
+@password = password123
+
+### 1. Đăng nhập
+# @name loginRequest
+POST {{host}}/api/elearning/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+> {%
+    client.global.set("auth_token", response.body.accessToken);
+    client.global.set("refresh_token", response.body.refreshToken);
+%}
+
+### 2. Xem tiến độ học tập (Vận dụng Stream API)
+GET {{host}}/api/elearning/study/my-progress
+Authorization: Bearer {{auth_token}}
+
+### 3. Nhận chứng chỉ (OpenFeign gọi thành công)
+# Giả sử khóa học có ID là 1 (đã hoàn thành 100%)
+POST {{host}}/api/elearning/study/1/claim-certificate
+Authorization: Bearer {{auth_token}}
+
+### 4. Đăng xuất
+POST {{host}}/api/elearning/auth/logout
+Authorization: Bearer {{auth_token}}
+
+### 5. Xem tiến độ học tập bằng Access Token cũ (Phải bị từ chối 401)
+# Bị chặn bởi Filter vì token đã bị revoke
+GET {{host}}/api/elearning/study/my-progress
+Authorization: Bearer {{auth_token}}
